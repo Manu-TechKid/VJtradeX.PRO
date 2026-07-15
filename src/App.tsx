@@ -12,6 +12,7 @@ import { AnalysisTool } from './components/AnalysisTool';
 import { Strategies } from './components/Strategies';
 import { CopyTrading } from './components/CopyTrading';
 import { TradingViewWidget } from './components/TradingViewWidget';
+import { LandingPage } from './components/LandingPage';
 
 import {
   LayoutDashboard,
@@ -29,7 +30,7 @@ import {
 
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [activeTab, setActiveTab] = useState<string>('landing');
   const [isTokenModalOpen, setIsTokenModalOpen] = useState(false);
   const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -311,6 +312,8 @@ export const App: React.FC = () => {
 
   const renderActiveTab = () => {
     switch (activeTab) {
+      case 'landing':
+        return <LandingPage onOpenLogin={() => setIsTokenModalOpen(true)} />;
       case 'dashboard':
         return <Dashboard onNavigate={setActiveTab} onSelectQuickBot={handleSelectQuickBot} />;
       case 'builder':
@@ -347,12 +350,30 @@ export const App: React.FC = () => {
     }
   };
 
+  // When user logs in, redirect from landing to dashboard
+  const handleAuthSuccess = (info: AccountInfo) => {
+    setAccountInfo(info);
+    if (activeTab === 'landing') setActiveTab('dashboard');
+  };
+
+  // When user logs out, return to landing
+  const handleAppLogout = () => {
+    handleLogout();
+    setActiveTab('landing');
+  };
+
+  const isLanding = activeTab === 'landing';
+
   return (
     <div className="app-container">
       {/* Top Header */}
       <header className="app-header">
         <div className="header-top">
-          <a href="#" className="logo-container" onClick={() => setActiveTab('dashboard')}>
+          <a
+            href="#"
+            className="logo-container"
+            onClick={() => setActiveTab(accountInfo ? 'dashboard' : 'landing')}
+          >
             <Cpu className="logo-icon" />
             <span className="logo-text">
               VJtrade<span className="logo-accent">X.PRO</span>
@@ -360,11 +381,13 @@ export const App: React.FC = () => {
           </a>
 
           <div className="header-actions">
-            {/* Connection Status indicator */}
-            <div className="status-badge">
-              <div className={`status-dot ${isConnected ? 'active' : ''}`}></div>
-              <span>{isConnected ? 'Connected' : 'Connecting...'}</span>
-            </div>
+            {/* Connection Status indicator — only when in app */}
+            {!isLanding && (
+              <div className="status-badge">
+                <div className={`status-dot ${isConnected ? 'active' : ''}`}></div>
+                <span>{isConnected ? 'Connected' : 'Connecting...'}</span>
+              </div>
+            )}
 
             {/* User Account Info / Login Button */}
             {accountInfo ? (
@@ -382,107 +405,129 @@ export const App: React.FC = () => {
                   className="btn btn-secondary"
                   style={{ padding: '6px', minWidth: 'auto' }}
                   title="Logout"
-                  onClick={handleLogout}
+                  onClick={handleAppLogout}
                 >
                   <LogOut size={16} />
                 </button>
               </div>
             ) : (
-              <button className="btn btn-primary" onClick={() => setIsTokenModalOpen(true)}>
-                <LogIn size={16} /> Authorize Account
-              </button>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button className="btn btn-secondary" onClick={() => setIsTokenModalOpen(true)}>
+                  <LogIn size={16} /> Log In
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() =>
+                    window.open('https://home.deriv.com/dashboard/signup', '_blank')
+                  }
+                >
+                  Get Started
+                </button>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Tab Navigation Menu */}
-        <nav className="header-nav">
-          <div className="nav-links">
-            <button
-              className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setActiveTab('dashboard')}
-            >
-              <LayoutDashboard /> Dashboard
-            </button>
-            <button
-              className={`nav-item ${activeTab === 'builder' ? 'active' : ''}`}
-              onClick={() => setActiveTab('builder')}
-            >
-              <Cpu /> Bot Builder
-            </button>
-            <button
-              className={`nav-item ${activeTab === 'manual' ? 'active' : ''}`}
-              onClick={() => setActiveTab('manual')}
-            >
-              <Users /> Manual Traders
-            </button>
-            <button
-              className={`nav-item ${activeTab === 'charts' ? 'active' : ''}`}
-              onClick={() => setActiveTab('charts')}
-            >
-              <LineChart /> Charts
-            </button>
-            <button
-              className={`nav-item ${activeTab === 'bots' ? 'active' : ''}`}
-              onClick={() => setActiveTab('bots')}
-            >
-              <Cpu /> Trading Bots
-            </button>
-            <button
-              className={`nav-item ${activeTab === 'analysis' ? 'active' : ''}`}
-              onClick={() => setActiveTab('analysis')}
-            >
-              <BarChart2 /> Analysis Tool
-            </button>
-            <button
-              className={`nav-item ${activeTab === 'strategies' ? 'active' : ''}`}
-              onClick={() => setActiveTab('strategies')}
-            >
-              <BookOpen /> Strategies
-            </button>
-            <button
-              className={`nav-item ${activeTab === 'copy' ? 'active' : ''}`}
-              onClick={() => setActiveTab('copy')}
-            >
-              <Users /> Copy Trading
-            </button>
-            <button
-              className={`nav-item ${activeTab === 'tradingview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('tradingview')}
-            >
-              <AreaChart /> TradingView
-            </button>
-          </div>
+        {/* Tab Navigation Menu — hidden on landing page */}
+        {!isLanding && (
+          <nav className="header-nav">
+            <div className="nav-links">
+              <button
+                className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setActiveTab('dashboard')}
+              >
+                <LayoutDashboard /> Dashboard
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'builder' ? 'active' : ''}`}
+                onClick={() => setActiveTab('builder')}
+              >
+                <Cpu /> Bot Builder
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'manual' ? 'active' : ''}`}
+                onClick={() => setActiveTab('manual')}
+              >
+                <Users /> Manual Traders
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'charts' ? 'active' : ''}`}
+                onClick={() => setActiveTab('charts')}
+              >
+                <LineChart /> Charts
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'bots' ? 'active' : ''}`}
+                onClick={() => setActiveTab('bots')}
+              >
+                <Cpu /> Trading Bots
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'analysis' ? 'active' : ''}`}
+                onClick={() => setActiveTab('analysis')}
+              >
+                <BarChart2 /> Analysis Tool
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'strategies' ? 'active' : ''}`}
+                onClick={() => setActiveTab('strategies')}
+              >
+                <BookOpen /> Strategies
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'copy' ? 'active' : ''}`}
+                onClick={() => setActiveTab('copy')}
+              >
+                <Users /> Copy Trading
+              </button>
+              <button
+                className={`nav-item ${activeTab === 'tradingview' ? 'active' : ''}`}
+                onClick={() => setActiveTab('tradingview')}
+              >
+                <AreaChart /> TradingView
+              </button>
+            </div>
 
-          {/* Running Bot Indicator on Navigation bar */}
-          <div className="header-bot-control">
-            {isBotRunning && (
-              <div className="status-badge" style={{ backgroundColor: 'var(--success-glow)', border: '1px solid rgba(16, 185, 129, 0.3)', color: 'var(--success-color)' }}>
-                <span className="status-dot active"></span>
-                <span style={{ fontWeight: '600' }}>Bot Active</span>
-              </div>
-            )}
-            <button
-              className="btn btn-secondary"
-              style={{ padding: '6px', minWidth: 'auto' }}
-              title="Fullscreen"
-              onClick={toggleFullscreen}
-            >
-              {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
-            </button>
-          </div>
-        </nav>
+            {/* Running Bot Indicator on Navigation bar */}
+            <div className="header-bot-control">
+              {isBotRunning && (
+                <div
+                  className="status-badge"
+                  style={{
+                    backgroundColor: 'var(--success-glow)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    color: 'var(--success-color)',
+                  }}
+                >
+                  <span className="status-dot active"></span>
+                  <span style={{ fontWeight: '600' }}>Bot Active</span>
+                </div>
+              )}
+              <button
+                className="btn btn-secondary"
+                style={{ padding: '6px', minWidth: 'auto' }}
+                title="Fullscreen"
+                onClick={toggleFullscreen}
+              >
+                {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
+              </button>
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* Main page content area */}
-      <main className="main-content">{renderActiveTab()}</main>
+      <main className={isLanding ? 'main-content-landing' : 'main-content'}>
+        {renderActiveTab()}
+      </main>
 
-      {/* Footer warning */}
+      {/* Footer */}
       <footer className="app-footer">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span className="risk-badge">RISK DISCLAIMER</span>
           <span>
-            Derivatives trading involves significant risk and can result in the loss of your invested capital. Bots do not guarantee profits.
+            Derivatives trading involves significant risk and can result in the loss of your invested
+            capital. Bots do not guarantee profits.
           </span>
         </div>
         <span>© {new Date().getFullYear()} VJtradeX.PRO. All rights reserved.</span>
@@ -492,9 +537,7 @@ export const App: React.FC = () => {
       <TokenModal
         isOpen={isTokenModalOpen}
         onClose={() => setIsTokenModalOpen(false)}
-        onSuccess={(info) => {
-          setAccountInfo(info);
-        }}
+        onSuccess={handleAuthSuccess}
       />
     </div>
   );
