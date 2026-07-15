@@ -41,7 +41,8 @@ class DerivService {
   private isConnected: boolean = false;
   private isConnecting: boolean = false;
   private messageCallbacks: Map<string, MessageCallback[]> = new Map();
-  private pendingRequests: Map<string, { resolve: Function; reject: Function }> = new Map();
+  private pendingRequests: Map<number, { resolve: Function; reject: Function }> = new Map();
+  private reqIdCounter: number = 1;
   private tickCallbacks: Map<string, Set<TickCallback>> = new Map();
   private activeTickSubscriptions: Map<string, string> = new Map(); // symbol -> subscriptionId
   private onConnectionChangeCallbacks: Set<(connected: boolean) => void> = new Set();
@@ -551,8 +552,8 @@ class DerivService {
     }
   }
 
-  private generateReqId(): string {
-    return Math.random().toString(36).substring(2, 15);
+  private generateReqId(): number {
+    return this.reqIdCounter++;
   }
 
   private notifyConnectionChange(connected: boolean) {
