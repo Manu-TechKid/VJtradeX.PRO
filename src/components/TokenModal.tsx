@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { derivService } from '../services/derivService';
 import type { AccountInfo } from '../services/derivService';
-import { X, Key, Shield, HelpCircle } from 'lucide-react';
+import { X, Key, Shield, HelpCircle, LogIn } from 'lucide-react';
 
 
 interface TokenModalProps {
@@ -41,6 +41,11 @@ export const TokenModal: React.FC<TokenModalProps> = ({ isOpen, onClose, onSucce
     }
   };
 
+  const handleOAuthLogin = () => {
+    derivService.setAppId(appId);
+    window.location.href = `https://oauth.deriv.com/oauth2/authorize?app_id=${appId}`;
+  };
+
   return (
     <div className="modal-overlay">
       <div className="modal-content">
@@ -51,6 +56,24 @@ export const TokenModal: React.FC<TokenModalProps> = ({ isOpen, onClose, onSucce
           <button className="modal-close" onClick={onClose}>
             <X size={20} />
           </button>
+        </div>
+
+        <div style={{ marginBottom: '24px', textAlign: 'center' }}>
+          <button
+            type="button"
+            className="btn btn-primary"
+            style={{ width: '100%', padding: '12px', fontSize: '15px', justifyContent: 'center' }}
+            onClick={handleOAuthLogin}
+            disabled={loading}
+          >
+            <LogIn size={18} style={{ marginRight: '8px' }} /> Log in with Deriv (Direct)
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0', color: 'var(--text-tertiary)', fontSize: '13px' }}>
+          <hr style={{ flex: 1, borderColor: 'var(--border-color)', margin: '0 10px' }} />
+          OR USE API TOKEN
+          <hr style={{ flex: 1, borderColor: 'var(--border-color)', margin: '0 10px' }} />
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -114,8 +137,8 @@ export const TokenModal: React.FC<TokenModalProps> = ({ isOpen, onClose, onSucce
             <button type="button" className="btn btn-secondary" onClick={onClose} disabled={loading}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Connecting...' : 'Authorize'}
+            <button type="submit" className="btn btn-secondary" disabled={loading} style={{ border: '1px solid var(--accent-color)', color: 'var(--accent-color)' }}>
+              {loading ? 'Connecting...' : 'Authorize Token'}
             </button>
           </div>
 

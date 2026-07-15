@@ -80,6 +80,22 @@ export const App: React.FC = () => {
     totalProfitRef.current = totalProfit;
   }, [totalProfit]);
 
+  // Handle OAuth Redirect
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const token1 = searchParams.get('token1');
+    
+    if (token1) {
+      // Clear URL params for security without triggering a page reload
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Attempt to authorize with the OAuth token
+      derivService.authorize(token1).catch(err => {
+        console.error("OAuth Authorization failed", err);
+      });
+    }
+  }, []);
+
   // Handle connection and authorization synchronizations
   useEffect(() => {
     derivService.connect();
